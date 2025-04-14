@@ -23,7 +23,8 @@ Terrain::Terrain(size_t _width, size_t _height, size_t _depth,int _numTextures)
         {
             for(int z=0; z<m_depth; ++z)
             {
-                setVoxel(x,y,z,ngl::Vec3(xpos,ypos,zpos),ngl::Random::getIntFromGeneratorName("randTexture"),true);
+                bool active = ngl::Random::getIntFromGeneratorName("randTexture") >_numTextures/2 ? true  : false;
+                setVoxel(x,y,z,ngl::Vec3(xpos,ypos,zpos),ngl::Random::getIntFromGeneratorName("randTexture"),active);
                 zpos+=step;
             }
             zpos=startZ;
@@ -40,7 +41,8 @@ std::vector<ngl::Vec4> Terrain::packData() const
     std::vector<ngl::Vec4> data;
     for(auto v : m_voxels)
     {
-        data.emplace_back(ngl::Vec4(v.position.m_x,v.position.m_y,v.position.m_z,v.textureIndex));
+        if(v.isActive)
+            data.emplace_back(ngl::Vec4(v.position.m_x,v.position.m_y,v.position.m_z,v.textureIndex));
     }
     return data;
 }

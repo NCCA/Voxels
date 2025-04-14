@@ -3,7 +3,6 @@
 #include <QGuiApplication>
 
 #include "NGLScene.h"
-#include "ngl/Shader.h"
 #include <ngl/Types.h>
 #include <ngl/NGLInit.h>
 #include <ngl/VAOPrimitives.h>
@@ -17,12 +16,15 @@ NGLScene::NGLScene()
 {
   // re-size the widget to that of the parent (in this case the GLFrame passed in on construction)
   setTitle("Voxel Rendering in NGL");
+  m_timer.start();
+
 }
 
 
 NGLScene::~NGLScene()
 {
   std::cout<<"Shutting down NGL, removing VAO's and Shaders\n";
+
 }
 
 
@@ -31,7 +33,8 @@ void NGLScene::resizeGL(int _w , int _h)
 {
   m_win.width  = static_cast<int>( _w * devicePixelRatio() );
   m_win.height = static_cast<int>( _h * devicePixelRatio() );
-  m_project = ngl::perspective(45.0f,float(_w)/float(_h),0.01f, 1000.0f);
+  m_cam.setProjection(45.0f, static_cast<float>(_w) / _h, 0.05f, 350.0f);
+
 }
 
 
@@ -53,6 +56,15 @@ void NGLScene::initializeGL()
   m_textureID = texture.setTextureGL();
 
   m_terrain=std::make_unique<Terrain>(100,50,100,16*16);
+  // Now we will create a basic Camera from the graphics library
+  // This is a static camera so it only needs to be set once
+  // First create Values for the camera position
+  ngl::Vec3 from(0, 20, 150);
+  ngl::Vec3 to(0, 0, 0);
+  ngl::Vec3 up(0, 1, 0);
+  // now load to our new camera
+  m_cam.set(from, to, up);
+  m_cam.setProjection(45.0f, 720.0f / 576.0f, 0.05f, 350.0f);
 
 
 }
@@ -64,20 +76,56 @@ void NGLScene::paintGL()
   // clear the screen and depth buffer
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glViewport(0,0,m_win.width,m_win.height);
+  float currentFrame = m_timer.elapsed() * 0.001f;
+  std::cout << "Current Frame " << currentFrame << '\n';
+  m_deltaTime = currentFrame - m_lastFrame;
+  m_lastFrame = currentFrame;
 
-  // Rotation based on the mouse position for our global transform
-  auto rotX = ngl::Mat4::rotateX(m_win.spinXFace);
-  auto rotY = ngl::Mat4::rotateY(m_win.spinYFace);
+  /// first we reset the movement values
+  float xDirection = 0.0;
+  float yDirection = 0.0;
+  constexpr float inc=2.5f;
+  // now we loop for each of the pressed keys in the the set
+  // and see which ones have been pressed. If they have been pressed
+  // we set the movement value to be an incremental value
+  foreach (Qt::Key key, m_keysPressed)
+  {
+    switch (key)
+    {
+    case Qt::Key_Left:
+    {
+      yDirection = -inc;
+      break;
+    }
+    case Qt::Key_Right:
+    {
+      yDirection = inc;
+      break;
+    }
+    case Qt::Key_Up:
+    {
+      xDirection = inc;
+      break;
+    }
+    case Qt::Key_Down:
+    {
+      xDirection = -inc;
+      break;
+    }
+    default:
+      break;
+    }
+  }
+  // if the set is non zero size we can update the ship movement
+  // then tell openGL to re-draw
+  if (m_keysPressed.size() != 0)
+  {
+    m_cam.move(xDirection, yDirection, m_deltaTime);
+  }
 
-  // multiply the rotations
-  m_mouseGlobalTX = rotX * rotY;
-  // add the translations
-  m_mouseGlobalTX.m_m[3][0] = m_modelPos.m_x;
-  m_mouseGlobalTX.m_m[3][1] = m_modelPos.m_y;
-  m_mouseGlobalTX.m_m[3][2] = m_modelPos.m_z;
 
-  m_view=ngl::lookAt({0.0f,20.0f,200.0f},{0,0,0},{0,1,0});
-  ngl::ShaderLib::setUniform("MVP",m_project*m_view*m_mouseGlobalTX);
+
+  ngl::ShaderLib::setUniform("MVP",m_cam.getVP());
   glBindBuffer(GL_ARRAY_BUFFER,m_vaoID);
   glBindTexture(GL_TEXTURE_2D,m_textureID);
 
@@ -101,6 +149,8 @@ void NGLScene::paintGL()
 
 void NGLScene::keyPressEvent(QKeyEvent *_event)
 {
+    m_keysPressed += static_cast<Qt::Key>(_event->key());
+
   // this method is called every time the main window recives a key event.
   // we then switch on the key value and set the camera in the GLWindow
   switch (_event->key())
@@ -116,6 +166,12 @@ void NGLScene::keyPressEvent(QKeyEvent *_event)
   default : break;
   }
   // finally update the GLWindow and re-draw
-
     update();
+}
+
+
+void NGLScene::keyReleaseEvent(QKeyEvent *_event)
+{
+  // remove from our key set any keys that have been released
+  m_keysPressed -= static_cast<Qt::Key>(_event->key());
 }

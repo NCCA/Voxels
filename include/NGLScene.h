@@ -3,8 +3,13 @@
 #include <ngl/Vec3.h>
 #include <ngl/Mat4.h>
 #include "WindowParams.h"
+#include "FirstPersonCamera.h"
+
 // this must be included after NGL includes else we get a clash with gl libs
 #include <QOpenGLWindow>
+#include <QElapsedTimer>
+#include <QSet>
+
 #include "Terrain.h"
 #include <memory>
 //----------------------------------------------------------------------------------------------------------------------
@@ -53,6 +58,8 @@ private:
     /// @param [in] _event the Qt event to query for size etc
     //----------------------------------------------------------------------------------------------------------------------
     void keyPressEvent(QKeyEvent *_event) override;
+    void keyReleaseEvent(QKeyEvent *_event) override;
+
     //----------------------------------------------------------------------------------------------------------------------
     /// @brief this method is called every time a mouse is moved
     /// @param _event the Qt Event structure
@@ -87,6 +94,23 @@ private:
     ngl::Mat4 m_mouseGlobalTX;
     GLuint m_textureID;
     std::unique_ptr<Terrain> m_terrain;
+    FirstPersonCamera m_cam;
+    //----------------------------------------------------------------------------------------------------------------------
+    /// @brief timing for camera update
+    //----------------------------------------------------------------------------------------------------------------------
+    float m_deltaTime = 0.0f;
+    //----------------------------------------------------------------------------------------------------------------------
+    /// @brief frame time for camera update
+    //----------------------------------------------------------------------------------------------------------------------
+    float m_lastFrame = 0.0f;
+    //----------------------------------------------------------------------------------------------------------------------
+    /// @brief timer for measurement
+    /// -----------------------------------------------------------------------------
+    QElapsedTimer m_timer;
+    //----------------------------------------------------------------------------------------------------------------------
+    /// @brief the keys being pressed
+    //----------------------------------------------------------------------------------------------------------------------
+    QSet<Qt::Key> m_keysPressed;
 
 };
 
