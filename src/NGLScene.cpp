@@ -46,22 +46,13 @@ void NGLScene::initializeGL()
   // enable multisampling for smoother drawing
   glEnable(GL_MULTISAMPLE);
   glGenVertexArrays(1, &m_vaoID);
-  glBindVertexArray(m_vaoID);
-  std::array<GLfloat,4> point={0.0f,0.0f,0.0f,85};
-  GLuint vboID;
-  glGenBuffers(1, &vboID);
-  // now bind this to the VBO buffer
-  glBindBuffer(GL_ARRAY_BUFFER, vboID);
-  // allocate the buffer data
-  glBufferData(GL_ARRAY_BUFFER, point.size()*sizeof(GLfloat), &point[0], GL_STATIC_DRAW);
-  // now fix this to the attribute buffer 0
-  glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
-  glEnableVertexAttribArray(0);
   ngl::ShaderLib::loadShader("VoxelShader","shaders/VoxelVertex.glsl","shaders/VoxelFragment.glsl","shaders/VoxelGeometry.glsl");
   ngl::ShaderLib::use("VoxelShader");
   ngl::ShaderLib::setUniform("textureAtlasDims",16,16);
   ngl::Texture texture("textures/minecrafttextures.jpg");
   m_textureID = texture.setTextureGL();
+
+  m_terrain=std::make_unique<Terrain>(100,50,100,16*16);
 
 
 }
@@ -85,11 +76,25 @@ void NGLScene::paintGL()
   m_mouseGlobalTX.m_m[3][1] = m_modelPos.m_y;
   m_mouseGlobalTX.m_m[3][2] = m_modelPos.m_z;
 
-  m_view=ngl::lookAt({0.0f,2.0f,2.0f},{0,0,0},{0,1,0});
+  m_view=ngl::lookAt({0.0f,20.0f,200.0f},{0,0,0},{0,1,0});
   ngl::ShaderLib::setUniform("MVP",m_project*m_view*m_mouseGlobalTX);
   glBindBuffer(GL_ARRAY_BUFFER,m_vaoID);
   glBindTexture(GL_TEXTURE_2D,m_textureID);
-  glDrawArrays(GL_POINTS,0,1);
+
+  glBindVertexArray(m_vaoID);
+  std::array<GLfloat,4> point={0.0f,0.0f,0.0f,85};
+  GLuint vboID;
+  glGenBuffers(1, &vboID);
+  // now bind this to the VBO buffer
+  glBindBuffer(GL_ARRAY_BUFFER, vboID);
+  // allocate the buffer data
+  auto buffer=m_terrain->packData();
+  glBufferData(GL_ARRAY_BUFFER, buffer.size()*sizeof(ngl::Vec4), &buffer[0].m_x, GL_STATIC_DRAW);
+  // now fix this to the attribute buffer 0
+  glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+  glEnableVertexAttribArray(0);
+  glDrawArrays(GL_POINTS,0,buffer.size());
+  glDeleteBuffers(1,&vboID);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

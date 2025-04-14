@@ -5,6 +5,8 @@
 #include "WindowParams.h"
 // this must be included after NGL includes else we get a clash with gl libs
 #include <QOpenGLWindow>
+#include "Terrain.h"
+#include <memory>
 //----------------------------------------------------------------------------------------------------------------------
 /// @file NGLScene.h
 /// @brief this class inherits from the Qt OpenGLWindow and allows us to use NGL to draw OpenGL
@@ -84,6 +86,7 @@ private:
     ngl::Mat4 m_project;
     ngl::Mat4 m_mouseGlobalTX;
     GLuint m_textureID;
+    std::unique_ptr<Terrain> m_terrain;
 
 };
 
