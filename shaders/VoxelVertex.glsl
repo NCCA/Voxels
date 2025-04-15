@@ -12,6 +12,6 @@ void main()
     textureIndex = texelFetch(texIndexSampler, gl_VertexID).r;
     activeVoxel = texelFetch(isActiveSampler, gl_VertexID).r;
 
-    vertexID = textureIndex;
+    vertexID = gl_VertexID;
     gl_Position = vec4(inputData, 1.0);
 }

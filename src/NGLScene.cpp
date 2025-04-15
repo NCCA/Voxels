@@ -34,10 +34,10 @@ void NGLScene::resizeGL(int _w, int _h)
 void NGLScene::createFramebuffer()
 {
   FrameBufferObject::setDefaultFBO(defaultFramebufferObject());
-  m_renderFBO = FrameBufferObject::create(1024 * devicePixelRatio(), 720 * devicePixelRatio());
+  m_renderFBO = FrameBufferObject::create(width() * devicePixelRatio(), height() * devicePixelRatio());
   m_renderFBO->bind();
   m_renderFBO->addColourAttachment("colour", GLAttatchment::_0, GLTextureFormat::RGBA, GLTextureInternalFormat::RGBA16F, GLTextureDataType::FLOAT, GLTextureMinFilter::NEAREST, GLTextureMagFilter::NEAREST, GLTextureWrap::CLAMP_TO_EDGE, GLTextureWrap::CLAMP_TO_EDGE, true);
-  m_renderFBO->addColourAttachment("id", GLAttatchment::_1, GLTextureFormat::RED, GLTextureInternalFormat::R32I, GLTextureDataType::INT, GLTextureMinFilter::NEAREST, GLTextureMagFilter::NEAREST, GLTextureWrap::CLAMP_TO_EDGE, GLTextureWrap::CLAMP_TO_EDGE, true);
+  m_renderFBO->addColourAttachment("id", GLAttatchment::_1, GLTextureFormat::RGBA, GLTextureInternalFormat::RGBA16F, GLTextureDataType::FLOAT, GLTextureMinFilter::NEAREST, GLTextureMagFilter::NEAREST, GLTextureWrap::CLAMP_TO_EDGE, GLTextureWrap::CLAMP_TO_EDGE, true);
 
   m_renderFBO->addDepthBuffer(GLTextureDepthFormats::DEPTH_COMPONENT24, GLTextureMinFilter::NEAREST, GLTextureMagFilter::NEAREST, GLTextureWrap::CLAMP_TO_EDGE, GLTextureWrap::CLAMP_TO_EDGE, true);
   // setup draw buffers whilst still bound
@@ -73,6 +73,7 @@ void NGLScene::initializeGL()
   ngl::ShaderLib::setUniform("isActiveSampler", 3);
 
   m_terrain = std::make_unique< Terrain >(200, 20, 200, 16 * 16);
+  // m_terrain = std::make_unique< Terrain >(10, 10, 10, 16 * 16);
   m_terrain->genTextureBuffer();
 
   ngl::Vec3 from(0, 20, 150);
@@ -146,19 +147,25 @@ void NGLScene::paintGL()
     glBindVertexArray(m_vaoID);
     auto numVoxels = m_terrain->getNumVoxels();
     glDrawArrays(GL_POINTS, 0, numVoxels);
-    if(m_keysPressed.contains(Qt::Key_S))
-    {
-      std::cout << "saving\n";
-      saveFrameBuffer("test.txt");
-    }
   } // end scoped bind
+
+  if(m_keysPressed.contains(Qt::Key_S))
+  {
+    std::cout << "saving\n";
+    saveFrameBuffer("test.txt");
+  }
 
   // now blit
   auto w = m_renderFBO->width();
   auto h = m_renderFBO->height();
   glBindFramebuffer(GL_READ_FRAMEBUFFER, m_renderFBO->getID());
+  if(!m_debug)
+    glReadBuffer(GL_COLOR_ATTACHMENT0);
+  else
+    glReadBuffer(GL_COLOR_ATTACHMENT1);
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, defaultFramebufferObject()); // default framebuffer
   glBlitFramebuffer(0, 0, w, h, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+  glReadBuffer(GL_COLOR_ATTACHMENT0);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -179,7 +186,9 @@ void NGLScene::keyPressEvent(QKeyEvent *_event)
       m_win.spinXFace = 0;
       m_win.spinYFace = 0;
       m_modelPos.set(ngl::Vec3::zero());
-
+      break;
+    case Qt::Key_D:
+      m_debug ^= true;
       break;
 
     default:
@@ -191,22 +200,29 @@ void NGLScene::keyPressEvent(QKeyEvent *_event)
 
 void NGLScene::saveFrameBuffer(std::string_view _fname)
 {
-  std::vector< int > data(m_renderFBO->width() * m_renderFBO->height());
+  // std::vector < GLubyte> data(m_renderFBO->width() * m_renderFBO->height() * 4);
+  std::array< GLubyte, 4 > data;
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, m_renderFBO->getID());
   // ScopedBind<FrameBufferObject> renderFBO(m_renderFBO.get());
   glReadBuffer(GL_COLOR_ATTACHMENT1);
-  glReadPixels(0, 0, m_renderFBO->width(), m_renderFBO->height(), GL_RED, GL_INT, &data[0]);
-  glReadBuffer(GL_COLOR_ATTACHMENT0);
 
-  auto file = std::ofstream(_fname.data());
-  for(const int &element : data)
-  {
-    file << element << " ";
-  }
-  file.close();
+  std::array< GLint, 4 > viewport;
+  glGetIntegerv(GL_VIEWPORT, &viewport[0]);
+  // read the pixels (1,1 at present but could do wider area)
+  glReadPixels(m_screenClick.m_x * devicePixelRatio(), viewport[3] - m_screenClick.m_y * devicePixelRatio(), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, data.data());
+
+  // glReadPixels(m_screenClick.m_x, m_screenClick.m_y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, data.data());
+  glReadBuffer(GL_COLOR_ATTACHMENT0);
+  std::cout << "Position " << m_screenClick.m_x << ' ' << m_screenClick.m_y << '\n';
+  auto index = ((data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3]);
+  std::cout << "Found index " << index << '\n';
+  m_terrain->removeIndex(index);
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, 0); // back to default
 }
 
 void NGLScene::keyReleaseEvent(QKeyEvent *_event)
 {
   // remove from our key set any keys that have been released
   m_keysPressed -= static_cast< Qt::Key >(_event->key());
+  update();
 }

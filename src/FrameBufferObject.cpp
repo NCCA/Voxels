@@ -70,7 +70,7 @@ bool FrameBufferObject::addColourAttachment(const std::string &_name, GLAttatchm
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, toGLType(_twrap));
   if(_immutable == true)
   {
-    glTexStorage2D(GL_TEXTURE_2D, 1, static_cast< int >(toGLType(_iformat)), m_width, m_height);
+    glTexStorage2D(GL_TEXTURE_2D, 1, toGLType(_iformat), m_width, m_height);
   }
   else
   {

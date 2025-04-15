@@ -48,27 +48,14 @@ size_t Terrain::getNumVoxels() const
   return m_voxelPosition.size();
 }
 
-// std::vector< ngl::Vec4 > Terrain::packData()
-// {
-//   m_numActiveVoxels = 0;
-//   std::vector< ngl::Vec4 > data;
-//   for(auto v : m_voxels)
-//   {
-//     if(v.isActive)
-//     {
-//       data.emplace_back(ngl::Vec4(v.position.m_x, v.position.m_y, v.position.m_z, v.textureIndex));
-//       ++m_numActiveVoxels;
-//     }
-//   }
-//   return data;
-// }
-
-// Terrain::Voxel Terrain::getVoxel(size_t _x, size_t _y, size_t _z) const
-// {
-//   if(_x >= m_width || _y >= m_height || _z >= m_depth)
-//     return Voxel();
-//   return m_voxels[_x + _y * m_width + _z * m_width * m_height];
-// }
+void Terrain::removeIndex(size_t _index)
+{
+  if(_index > m_isActive.size())
+    return;
+  m_isActive[_index] = false;
+  glBindBuffer(GL_TEXTURE_BUFFER, m_textureID[2]);
+  glBufferData(GL_TEXTURE_BUFFER, m_isActive.size() * sizeof(GLuint), &m_isActive[0], GL_STATIC_DRAW);
+}
 
 void Terrain::setVoxel(size_t _x, size_t _y, size_t _z, ngl::Vec3 _pos, int _tex, bool _active)
 {
@@ -79,19 +66,16 @@ void Terrain::setVoxel(size_t _x, size_t _y, size_t _z, ngl::Vec3 _pos, int _tex
   m_voxelPosition[index] = _pos;
   m_textureIndex[index] = _tex;
   m_isActive[index] = _active;
-  // m_voxels[index].position = _pos;
-  // m_voxels[index].textureIndex = _tex;
-  // m_voxels[index].isActive = _active;
 }
 
 Terrain::~Terrain()
 {
-  glDeleteTextures(2, &m_textureID[0]);
+  glDeleteTextures(m_textureID.size(), &m_textureID[0]);
 }
 
 void Terrain::genTextureBuffer()
 {
-  glGenTextures(3, &m_textureID[0]);
+  glGenTextures(m_textureID.size(), &m_textureID[0]);
   glBindBuffer(GL_TEXTURE_BUFFER, m_textureID[0]);
   glBufferData(GL_TEXTURE_BUFFER, m_voxelPosition.size() * sizeof(ngl::Vec3), &m_voxelPosition[0].m_x, GL_STATIC_DRAW);
 

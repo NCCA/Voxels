@@ -13,6 +13,7 @@ class Terrain
   void genTextureBuffer();
   void activateTextureBuffer(GLenum _bufferLocation, GLenum _textureLocation, GLenum _activeLocation);
   size_t getNumVoxels() const;
+  void removeIndex(size_t _index);
 
     private:
   // struct Voxel

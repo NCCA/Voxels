@@ -40,8 +40,8 @@ void emitFace(vec3 center, vec3 normal, vec3 up)
     {
         gl_Position = MVP * vec4(corners[i], 1.0);
         textureCoords = uvs[i];
-        vertID = vertexID[i];
-        isactive = activeVoxel[i];
+        vertID = vertexID[0];
+        isactive = activeVoxel[0];
         EmitVertex();
     }
     EndPrimitive();
