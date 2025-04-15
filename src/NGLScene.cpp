@@ -85,7 +85,7 @@ void NGLScene::initializeGL()
   ngl::ShaderLib::setUniform("textureSampler",0);
   ngl::ShaderLib::setUniform("posSampler",1);
 
-  m_terrain=std::make_unique<Terrain>(100,50,100,16*16);
+  m_terrain=std::make_unique<Terrain>(200,20,200,16*16);
   m_terrain->genTextureBuffer();
 
   ngl::Vec3 from(0, 20, 150);

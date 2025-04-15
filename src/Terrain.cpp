@@ -27,7 +27,7 @@ Terrain::Terrain(size_t _width, size_t _height, size_t _depth, int _numTextures)
     {
       for(int z = 0; z < m_depth; ++z)
       {
-        bool active = true; //ngl::Random::getIntFromGeneratorName("randTexture") > _numTextures / 3 ? true : false;
+        bool active = ngl::Random::getIntFromGeneratorName("randTexture") > _numTextures / 2 ? true : false;
         setVoxel(x, y, z, ngl::Vec3(xpos, ypos, zpos), ngl::Random::getIntFromGeneratorName("randTexture"), active);
         zpos += step;
       }
