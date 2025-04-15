@@ -4,7 +4,7 @@ CompileFlags:
     - "-Wall -Wextra"
     - "-std=c++17"
 Diagnostics:
-  MissingIncludes: Strict
+  MissingIncludes: None
   UnusedIncludes: Strict
   Suppress:
     - "pp_includes"
