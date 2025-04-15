@@ -118,6 +118,7 @@ class NGLScene : public QOpenGLWindow
   bool m_debug = false;
   ngl::Vec2 m_screenClick;
   size_t m_voxelIndex;
+  float m_currentDepth;
 };
 
 #endif

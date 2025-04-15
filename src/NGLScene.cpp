@@ -28,7 +28,7 @@ void NGLScene::resizeGL(int _w, int _h)
 {
   m_win.width = static_cast< int >(_w * devicePixelRatio());
   m_win.height = static_cast< int >(_h * devicePixelRatio());
-  m_cam.setProjection(45.0f, static_cast< float >(_w) / _h, 0.05f, 350.0f);
+  m_cam.setProjection(45.0f, static_cast< float >(_w) / _h, 0.1f, 100.0f);
 }
 
 void NGLScene::createFramebuffer()
@@ -72,7 +72,7 @@ void NGLScene::initializeGL()
   ngl::ShaderLib::setUniform("texIndexSampler", 2);
   ngl::ShaderLib::setUniform("isActiveSampler", 3);
 
-  m_terrain = std::make_unique< Terrain >(200, 20, 200, 16 * 16);
+  m_terrain = std::make_unique< Terrain >(250, 30, 100, 16 * 16);
   // m_terrain = std::make_unique< Terrain >(10, 10, 10, 16 * 16);
   m_terrain->genTextureBuffer();
 
@@ -121,7 +121,8 @@ void NGLScene::paintGL()
         }
         case Qt::Key_Up:
         {
-          xDirection = inc;
+          if(m_currentDepth >= 0.005f)
+            xDirection = inc;
           break;
         }
         case Qt::Key_Down:
@@ -219,8 +220,13 @@ void NGLScene::updateVoxelIndex()
   // read the pixels (1,1 at present but could do wider area)
   glReadPixels(m_screenClick.m_x * devicePixelRatio(), viewport[3] - m_screenClick.m_y * devicePixelRatio(), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, data.data());
 
-  // glReadPixels(m_screenClick.m_x, m_screenClick.m_y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, data.data());
   glReadBuffer(GL_COLOR_ATTACHMENT0);
+  glReadPixels(m_screenClick.m_x * devicePixelRatio(), viewport[3] - m_screenClick.m_y * devicePixelRatio(), 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &m_currentDepth);
+  float near = 0.05f;
+  float far = 350.0f;
+  m_currentDepth = ((2.0 * near) / (far + near - m_currentDepth * (far - near)));
+  std::cout << "Current Depth " << m_currentDepth << '\n';
+
   m_voxelIndex = ((data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3]);
   glBindFramebuffer(GL_READ_FRAMEBUFFER, 0); // back to default
 }
