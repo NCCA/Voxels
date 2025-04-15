@@ -19,6 +19,11 @@ set(TargetName Voxels)
 # This will include the file NGLConfig.cmake, you need to add the location to this either using
 # -DCMAKE_PREFIX_PATH=~/NGL or as a system environment variable.
 find_package(NGL CONFIG REQUIRED)
+find_package(OpenImageIO CONFIG REQUIRED)
+set(Boost_NO_WARN_NEW_VERSIONS 1)
+find_package(Boost COMPONENTS filesystem thread)
+
+
 # Instruct CMake to run moc automatically when needed (Qt projects only)
 set(CMAKE_AUTOMOC ON)
 # find Qt libs
@@ -45,13 +50,16 @@ target_sources(${TargetName} PRIVATE ${PROJECT_SOURCE_DIR}/src/main.cpp
    ${PROJECT_SOURCE_DIR}/src/NGLScene.cpp
    ${PROJECT_SOURCE_DIR}/src/FirstPersonCamera.cpp
    ${PROJECT_SOURCE_DIR}/src/Terrain.cpp
+   ${PROJECT_SOURCE_DIR}/src/FrameBufferObject.cpp
    ${PROJECT_SOURCE_DIR}/src/NGLSceneMouseControls.cpp
    ${PROJECT_SOURCE_DIR}/include/NGLScene.h
    ${PROJECT_SOURCE_DIR}/include/Terrain.h
    ${PROJECT_SOURCE_DIR}/include/FirstPersonCamera.h
+   ${PROJECT_SOURCE_DIR}/include/FrameBufferObject.h
+   ${PROJECT_SOURCE_DIR}/include/TextureTypes.h
 )
 
-target_link_libraries(${TargetName} PRIVATE Qt::Widgets Qt::OpenGL NGL)
+target_link_libraries(${TargetName} PRIVATE Qt::Widgets Qt::OpenGL NGL OpenImageIO::OpenImageIO  Boost::filesystem Boost::thread)
 
 add_custom_target(${TargetName}CopyShaders ALL
    COMMAND ${CMAKE_COMMAND} -E copy_directory

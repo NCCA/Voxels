@@ -1,6 +1,10 @@
 CompileFlags:
   Add:
     - "--include-directory=../include:~/Qt/6.9.0/macos/include"
+    - "-Wall -Wextra"
+    - "-std=c++17"
 Diagnostics:
   MissingIncludes: Strict
   UnusedIncludes: Strict
+  Suppress:
+    - "pp_includes"

@@ -4,6 +4,7 @@
 #include <ngl/Mat4.h>
 #include "WindowParams.h"
 #include "FirstPersonCamera.h"
+#include "FrameBufferObject.h"
 
 // this must be included after NGL includes else we get a clash with gl libs
 #include <QOpenGLWindow>
@@ -84,6 +85,9 @@ private:
     /// @param _event the Qt Event structure
     //----------------------------------------------------------------------------------------------------------------------
     void wheelEvent( QWheelEvent *_event) override;
+
+    void createFramebuffer();
+    void saveFrameBuffer(std::string_view _fname);
     /// @brief windows parameters for mouse control etc.
     WinParams m_win;
     /// position for our model
@@ -95,6 +99,8 @@ private:
     GLuint m_textureID;
     std::unique_ptr<Terrain> m_terrain;
     FirstPersonCamera m_cam;
+    std::unique_ptr<FrameBufferObject> m_renderFBO;
+
     //----------------------------------------------------------------------------------------------------------------------
     /// @brief timing for camera update
     //----------------------------------------------------------------------------------------------------------------------

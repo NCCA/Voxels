@@ -73,9 +73,13 @@ bool FrameBufferObject::addColourAttachment(const std::string &_name, GLAttatchm
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, toGLType(_swrap));
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, toGLType(_twrap));
   if (_immutable == true)
+  {
     glTexStorage2D(GL_TEXTURE_2D, 1, toGLType(_iformat), m_width, m_height);
+  }
   else
+  {
     glTexImage2D(GL_TEXTURE_2D, 0, static_cast<int>(toGLType(_iformat)), m_width, m_height, 0, toGLType(_format), toGLType(_type), nullptr);
+  }
   glFramebufferTexture2D(GL_FRAMEBUFFER, toGLType(_attachment), GL_TEXTURE_2D, id, 0);
   ngl::NGLMessage::addMessage(fmt::format("Adding Texture {0} {1}", _name, id));
   TextureAttachment t;
@@ -93,7 +97,8 @@ void FrameBufferObject::bind(Target _target) noexcept
 }
 void FrameBufferObject::unbind() noexcept
 {
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glBindFramebuffer(GL_FRAMEBUFFER, s_defaultFBO);
+
   m_bound = false;
 }
 GLuint FrameBufferObject::getTextureID(const std::string &_name) noexcept

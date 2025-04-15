@@ -3,6 +3,9 @@
 layout(points) in;
 layout(triangle_strip, max_vertices = 36) out;
 flat in int textureIndex[];
+flat in int vertexID[];
+flat out int vertID;
+
 uniform mat4 MVP;
 uniform ivec2 textureAtlasDims;
 out vec2 textureCoords;
@@ -35,6 +38,7 @@ void emitFace(vec3 center, vec3 normal, vec3 up)
     {
         gl_Position = MVP * vec4(corners[i], 1.0);
         textureCoords = uvs[i];
+        vertID = vertexID[i];
         EmitVertex();
     }
     EndPrimitive();
