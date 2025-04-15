@@ -1,5 +1,6 @@
 #include "Terrain.h"
 #include <OpenImageIO/imageio.h>
+#include <algorithm>
 #include <cstddef>
 #include <ngl/Random.h>
 #include <random>
@@ -57,6 +58,17 @@ void Terrain::removeIndex(size_t _index)
   glBufferData(GL_TEXTURE_BUFFER, m_isActive.size() * sizeof(GLuint), &m_isActive[0], GL_STATIC_DRAW);
 }
 
+void Terrain::changeTextureID(size_t _index, int value)
+{
+  if(_index > m_textureIndex.size())
+    return;
+
+  m_textureIndex[_index] += value;
+  m_textureIndex[_index] = std::clamp(m_textureIndex[_index], GLuint{0}, GLuint{m_numTextures});
+  glBindBuffer(GL_TEXTURE_BUFFER, m_textureID[1]);
+  glBufferData(GL_TEXTURE_BUFFER, m_textureIndex.size() * sizeof(GLuint), &m_textureIndex[0], GL_STATIC_DRAW);
+}
+
 void Terrain::setVoxel(size_t _x, size_t _y, size_t _z, ngl::Vec3 _pos, int _tex, bool _active)
 {
   if(_x >= m_width || _y >= m_height || _z >= m_depth)
@@ -76,12 +88,13 @@ Terrain::~Terrain()
 void Terrain::genTextureBuffer()
 {
   glGenTextures(m_textureID.size(), &m_textureID[0]);
+  // voxel position id 0
   glBindBuffer(GL_TEXTURE_BUFFER, m_textureID[0]);
   glBufferData(GL_TEXTURE_BUFFER, m_voxelPosition.size() * sizeof(ngl::Vec3), &m_voxelPosition[0].m_x, GL_STATIC_DRAW);
-
+  // what texture to use id 1
   glBindBuffer(GL_TEXTURE_BUFFER, m_textureID[1]);
   glBufferData(GL_TEXTURE_BUFFER, m_textureIndex.size() * sizeof(GLuint), &m_textureIndex[0], GL_STATIC_DRAW);
-
+  // visibility flage id 2
   glBindBuffer(GL_TEXTURE_BUFFER, m_textureID[2]);
   glBufferData(GL_TEXTURE_BUFFER, m_isActive.size() * sizeof(GLuint), &m_isActive[0], GL_STATIC_DRAW);
 }

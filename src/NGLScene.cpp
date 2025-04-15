@@ -76,7 +76,7 @@ void NGLScene::initializeGL()
   // m_terrain = std::make_unique< Terrain >(10, 10, 10, 16 * 16);
   m_terrain->genTextureBuffer();
 
-  ngl::Vec3 from(0, 20, 150);
+  ngl::Vec3 from(0, 10, 60);
   ngl::Vec3 to(0, 0, 0);
   ngl::Vec3 up(0, 1, 0);
   // now load to our new camera
@@ -101,7 +101,7 @@ void NGLScene::paintGL()
     /// first we reset the movement values
     float xDirection = 0.0;
     float yDirection = 0.0;
-    constexpr float inc = 2.5f;
+    constexpr float inc = 1.0f;
     // now we loop for each of the pressed keys in the the set
     // and see which ones have been pressed. If they have been pressed
     // we set the movement value to be an incremental value
@@ -149,10 +149,19 @@ void NGLScene::paintGL()
     glDrawArrays(GL_POINTS, 0, numVoxels);
   } // end scoped bind
 
+  updateVoxelIndex();
   if(m_keysPressed.contains(Qt::Key_S))
   {
-    std::cout << "saving\n";
-    saveFrameBuffer("test.txt");
+    m_terrain->removeIndex(m_voxelIndex);
+  }
+  if(m_keysPressed.contains(Qt::Key_Z))
+  {
+    m_terrain->changeTextureID(m_voxelIndex, -1);
+  }
+
+  if(m_keysPressed.contains(Qt::Key_X))
+  {
+    m_terrain->changeTextureID(m_voxelIndex, 1);
   }
 
   // now blit
@@ -198,9 +207,8 @@ void NGLScene::keyPressEvent(QKeyEvent *_event)
   update();
 }
 
-void NGLScene::saveFrameBuffer(std::string_view _fname)
+void NGLScene::updateVoxelIndex()
 {
-  // std::vector < GLubyte> data(m_renderFBO->width() * m_renderFBO->height() * 4);
   std::array< GLubyte, 4 > data;
   glBindFramebuffer(GL_READ_FRAMEBUFFER, m_renderFBO->getID());
   // ScopedBind<FrameBufferObject> renderFBO(m_renderFBO.get());
@@ -213,10 +221,7 @@ void NGLScene::saveFrameBuffer(std::string_view _fname)
 
   // glReadPixels(m_screenClick.m_x, m_screenClick.m_y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, data.data());
   glReadBuffer(GL_COLOR_ATTACHMENT0);
-  std::cout << "Position " << m_screenClick.m_x << ' ' << m_screenClick.m_y << '\n';
-  auto index = ((data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3]);
-  std::cout << "Found index " << index << '\n';
-  m_terrain->removeIndex(index);
+  m_voxelIndex = ((data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3]);
   glBindFramebuffer(GL_READ_FRAMEBUFFER, 0); // back to default
 }
 

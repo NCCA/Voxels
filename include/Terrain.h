@@ -14,21 +14,9 @@ class Terrain
   void activateTextureBuffer(GLenum _bufferLocation, GLenum _textureLocation, GLenum _activeLocation);
   size_t getNumVoxels() const;
   void removeIndex(size_t _index);
+  void changeTextureID(size_t _index, int value);
 
     private:
-  // struct Voxel
-  // {
-
-  //   Voxel()
-  //   {
-  //     idx = current_idx++;
-  //   };
-  //   ngl::Vec3 position = {0, 0, 0};
-  //   int textureIndex = 0;
-  //   bool isActive = false;
-  //   size_t idx;
-  //   inline static size_t current_idx = 0;
-  // };
   // we can use the index as the main identifier and send all to the GPU
   std::vector< ngl::Vec3 > m_voxelPosition;
   std::vector< GLuint > m_isActive;
@@ -44,8 +32,7 @@ class Terrain
   // we will have two texture buffers 1 for position as a vec3 of type float
   // the 2nd will be an ivec2 with the bufferID and TextureID
   std::array< GLuint, 3 > m_textureID;
-  int m_numTextures;
-  // size_t m_numActiveVoxels;
+  unsigned int m_numTextures;
 };
 
 #endif

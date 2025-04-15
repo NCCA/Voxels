@@ -59,7 +59,7 @@ class NGLScene : public QOpenGLWindow
   //----------------------------------------------------------------------------------------------------------------------
   void keyPressEvent(QKeyEvent *_event) override;
   void keyReleaseEvent(QKeyEvent *_event) override;
-
+  void updateVoxelIndex();
   //----------------------------------------------------------------------------------------------------------------------
   /// @brief this method is called every time a mouse is moved
   /// @param _event the Qt Event structure
@@ -86,7 +86,6 @@ class NGLScene : public QOpenGLWindow
   void wheelEvent(QWheelEvent *_event) override;
 
   void createFramebuffer();
-  void saveFrameBuffer(std::string_view _fname);
   /// @brief windows parameters for mouse control etc.
   WinParams m_win;
   /// position for our model
@@ -118,8 +117,7 @@ class NGLScene : public QOpenGLWindow
   QSet< Qt::Key > m_keysPressed;
   bool m_debug = false;
   ngl::Vec2 m_screenClick;
-
-
+  size_t m_voxelIndex;
 };
 
 #endif
