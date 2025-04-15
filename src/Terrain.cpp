@@ -112,10 +112,10 @@ void Terrain::activateTextureBuffer(GLenum _bufferLocation, GLenum _textureLocat
   glActiveTexture(_textureLocation);
   glBindTexture(GL_TEXTURE_BUFFER, m_textureID[1]);
   glBindBuffer(GL_TEXTURE_BUFFER, m_textureID[1]);
-  glTexBuffer(GL_TEXTURE_BUFFER, GL_R32UI, m_textureID[1]);
+  glTexBuffer(GL_TEXTURE_BUFFER, GL_R32I, m_textureID[1]);
 
   glActiveTexture(_activeLocation);
   glBindTexture(GL_TEXTURE_BUFFER, m_textureID[2]);
   glBindBuffer(GL_TEXTURE_BUFFER, m_textureID[2]);
-  glTexBuffer(GL_TEXTURE_BUFFER, GL_R32UI, m_textureID[2]);
+  glTexBuffer(GL_TEXTURE_BUFFER, GL_R32I, m_textureID[2]);
 }
